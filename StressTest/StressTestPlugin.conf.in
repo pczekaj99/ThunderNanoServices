@@ -1,0 +1,10 @@
+startmode = "@PLUGIN_STRESSTEST_STARTMODE@"
+
+configuration = JSON()
+configuration.add("messagesize", 100)
+configuration.add("sendinginterval", 10)
+configuration.add("numberofcycles", 100)
+
+root = JSON()
+root.add("mode", "@PLUGIN_STRESSTEST_MODE@")
+configuration.add("root", root)
