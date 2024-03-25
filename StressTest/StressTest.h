@@ -18,6 +18,7 @@
  */
 
  #include "Module.h"
+ #include <interfaces/IStressTest.h>
 
 namespace WPEFramework {
 namespace Plugin {
@@ -34,17 +35,27 @@ namespace Plugin {
             : _messageSize(0)
             , _sendingInterval(0)
             , _config()
+            , _service(nullptr)
             , _minRangeMessageSize(1)
             , _maxRaneMessageSize(10000)
             , _minRangeSendingInterval(1)
             , _maxRangeSendingInterval(30)
             , _job(*this)
+            , _implementation(nullptr)
+            {
+            }
 
+            BEGIN_INTERFACE_MAP(StressTest)
+            INTERFACE_ENTRY(PluginHost::IPlugin)
+            INTERFACE_ENTRY(PluginHost::IDispatcher)
+            INTERFACE_AGGREGATE(Exchange::IStressTest, _implementation)
+            END_INTERFACE_MAP
 
             const string Initialize(PluginHost::IShell* service) override;
             void Deinitialize(PluginHost::IShell* service) override;
+            string Information() const override;
 
-            void Dispatch() override {
+            void Dispatch() {
                 SendMessage();
             }
 
@@ -75,6 +86,8 @@ namespace Plugin {
 
             Config _config;
             Core::WorkerPool::JobType<StressTest&> _job;
+            PluginHost::IShell* _service;
+            Exchange::IStressTest* _implementation;
 
             // min and max ranges is for random generator
             uint32_t _minRangeMessageSize;
@@ -85,7 +98,8 @@ namespace Plugin {
             uint32_t _messageSize;
             uint32_t _sendingInterval;
             uint8_t _numberOfCycles;
-    }
+            uint32_t _connectionId;
+    };
 
 } // namespace Plugin
 } // namespace WPEframework

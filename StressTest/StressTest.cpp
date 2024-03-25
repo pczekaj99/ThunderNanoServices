@@ -23,56 +23,90 @@
 namespace WPEFramework {
 namespace Plugin {
 
-    const string Initialize(PluginHost::IShell* service) {
-        ASSERT (_service == nullptr);
+    namespace {
+
+        static Metadata<StressTest> metadata(
+            // Version
+            1, 0, 0,
+            // Preconditions
+            {},
+            // Terminations
+            {},
+            // Controls
+            {}
+        );
+    }
+
+    const string StressTest::Initialize(PluginHost::IShell* service) {
+        //ASSERT (service == nullptr);
+
+        TRACE(Trace::Information, (_T("Innit starting")));
+        _service = service;
+        _service->AddRef();
+
+        _implementation = _service->Root<Exchange::IStressTest>(_connectionId, 2000, _T("StressTestImplementation"));
+
+        TRACE(Trace::Information, (_T("Connected")));
 
         std::random_device randomGenerator;
         std::mt19937 rng(randomGenerator());
 
-        _config.FromString(service->ConfigLine());
+        _config.FromString(_service->ConfigLine());
 
-        if(config.MessageSize.IsSet() == true && config.MessageSize.Value() != 0) {
-            _messageSize = config.MessageSize.Value();
+        if(_config.MessageSize.IsSet() == true && _config.MessageSize.Value() != 0) {
+            _messageSize = _config.MessageSize.Value();
         }
         else {
             std::uniform_int_distribution<std::mt19937::result_type> rangeMessageSize(_minRangeMessageSize, _maxRaneMessageSize);
             _messageSize = rangeMessageSize(rng);
         }
 
-        if(config.SendingInterval.IsSet() == true && config.MessageSize.Value() != 0) {
-            _sendingInterval = config.SendingInterval.Value();
+        if(_config.SendingInterval.IsSet() == true && _config.MessageSize.Value() != 0) {
+            _sendingInterval = _config.SendingInterval.Value();
         }
         else {
             std::uniform_int_distribution<std::mt19937::result_type> rangeSendingInterval(_minRangeSendingInterval, _maxRangeSendingInterval);
             _sendingInterval = rangeSendingInterval(rng);
         }
 
-        if(config.NumberOfCycles.IsSet() == true) {
-            _numberOfCycles = config.NumberOfCycles.Value();
+        if(_config.NumberOfCycles.IsSet() == true) {
+            _numberOfCycles = _config.NumberOfCycles.Value();
         }
+
+        TRACE(Trace::Information, (_T("Config done")));
 
         for(int i = 0; i < _numberOfCycles; i++) {
-            Core::WorkerPool::Instance().Schedule((Core::Time::Now() + sendingInterval), _job);
+            //Core::IWorkerPool::Instance().Schedule((Core::Time::Now() + _sendingInterval), _job);
+            _job.Submit();
+            _job.Reschedule(Core::Time::Now() + _sendingInterval);
         }
+
+        return _T("End");
     }
 
-    void Deinitialize(PluginHost::IShell* service) {
+    void StressTest::Deinitialize(PluginHost::IShell* service) {
         ASSERT(service != nullptr);
 
-        Core::IWorkerPool::Instance().Revoke(_job);
+        _job.Revoke();
     }
 
+    string StressTest::Information() const
+    {
+        return string();
+    }
 
-    void SendMessage() {
+    void StressTest::SendMessage() {
         string newMessage = CreateMessage();
-        TRACE(Trace::Information, newMessage);
+        TRACE(Trace::Information, (_T("[%s]"), newMessage.c_str()));
     }
 
-    string CreateMessage() {
+    string StressTest::CreateMessage() {
         string message;
         for(int i = 0; i < _messageSize; i++) {
             message += 'X';
         }
+        
+        return message;
     }
 
 } // namespace Plugin

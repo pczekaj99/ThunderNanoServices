@@ -63,6 +63,7 @@ option(PLUGIN_WEBSERVER "Include WebServer plugin" OFF)
 option(PLUGIN_WEBSHELL "Include WebShell plugin" OFF)
 option(PLUGIN_WIFICONTROL "Include WifiControl plugin" OFF)
 option(PLUGIN_FILETRANSFER "Include FileTransfer plugin" OFF)
+option(PLUGIN_STRESSTEST "Include StressTest plugin" OFF)
 
 if(ENABLE_STRICT_COMPILER_SETTINGS)
     if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
@@ -261,6 +262,10 @@ endif()
 
 if(PLUGIN_FILETRANSFER)
     add_subdirectory(FileTransfer)
+endif()
+
+if(PLUGIN_STRESSTEST)
+    add_subdirectory(StressTest)
 endif()
 
 add_subdirectory(examples)
